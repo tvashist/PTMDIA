@@ -3,7 +3,7 @@ import re
 import math
 from statistics import mean,stdev,mode
 
-
+#I am tracking changes on this script
 #Uncomment which instrument you're working on data from
 # platform = 'Exploris'
 # platform = 'Pro'
