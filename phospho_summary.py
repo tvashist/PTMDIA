@@ -3,9 +3,10 @@ import re
 import math
 from statistics import mean,stdev,mode
 
+
 #Get a summary of the number of phosphopeptide and phosphosite counts in the runs without spiked peptides
 descriptor = 'Pro_PhosphoBG_NoSpike'            #How you want your replicates to be annotated
-spectronaut = pd.read_csv('C:/Users/tvashist/PycharmProjects/PTMDIA_Project/20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter='\t')     #Entire data frame
+spectronaut = pd.read_csv('C:/Users/tvashist/PycharmProjects/PTMDIA_Project/20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')     #Entire data frame
 
 nospike = spectronaut.loc[spectronaut['R.FileName'].str.contains('NoSpike')]        #Only look at the entries that are from the no spike runs
 reps = list(set(nospike['R.FileName']))                                                  #Unique runs in file, so all three reps of no spike runs
@@ -57,7 +58,7 @@ for rep in range(0, len(reps)):
 
 
 report = pd.DataFrame.from_dict(phospho_summary)
-report.to_csv('C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/Pro_NoSpike_Summary/Summary.tsv', sep = '\t')
+report.to_csv('C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_NoSpike_Summary/Summary.tsv', sep = '\t')
 
 
 
