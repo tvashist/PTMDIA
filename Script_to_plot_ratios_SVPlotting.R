@@ -3,7 +3,7 @@ require(tidyr)
 require(stringr)
 require(data.table)
 library(ggplot2)
-install.packages("readr")
+library(readr)
 
 
 setwd("C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_Lights_outputs_Found/")
@@ -72,6 +72,10 @@ for (point in ratios_for_plotting$conc) {
 ratios_for_plotting$`Percent Error` <- errors
 ratios_for_plotting$`Actual Ratio Median` <- actual_median
 
-write.csv
+ratios_for_plotting <- select(ratios_for_plotting, Spike, `Expected Ratio`, `Actual Ratio Median`, `Percent Error`)
+
+
+write_tsv(ratios_for_plotting, "C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_Lights_outputs_Found/PercentError.tsv")
+
 
 
