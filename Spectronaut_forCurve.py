@@ -3,41 +3,49 @@ import re
 import math
 from statistics import mean,stdev,mode
 
+##Hey!!!!
 #Uncomment which instrument you're working on data from
 # platform = 'Exploris'
-# platform = 'Pro'
-platform = 'SCP'
+platform = 'Pro'
+# platform = 'SCP'
 
 if platform == 'SCP':
-    conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]                                             #Spiked amounts of peptide used for this instrument platform
-    spectronaut = pd.read_csv('20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')    #Read in Spectronaut results export
+    conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]               #Spiked amounts of peptide used for this instrument platform
+    spectronaut = pd.read_csv('S:/Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SCP20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')
 
 
 
 if platform == 'Pro':
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv('20220405_152239_PTMDIAProject_Phospho_TimsTOF_Pro_Report.tsv', delimiter= '\t')
+    spectronaut = pd.read_csv('S:/Tan/PTMDIAProject_PhosphoBGCurve/Outputs/Pro/20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t')
 
 
 if platform == 'Exploris':
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv('20220411_084730_PTMDIAProject_PhoshpoTestCurve_DIA_Exploris_Report.tsv', delimiter = '\t')
+    spectronaut = pd.read_csv('', delimiter = '\t')
 
 
 ###Lights###
 summary_lights = {}
-lights = pd.read_csv('Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates light phosphopeptide sequences as they would appear on Spectronaut
+lights = pd.read_csv('Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 
 for sequence in lights:
 
 
     find = sequence     #Spiked in peptide sequence
 
-    #Create sub data frame relevant to spiked peptide sequence
-    single = spectronaut.loc[spectronaut['EG.IntPIMID'] == find]                    #Only look at the entries in Spectronaut report where that spiked peptide was found
-    single = single[['R.Condition','R.Replicate','EG.IntPIMID','FG.Quantity']]      #Keep only the column indicating condition/spike, peptide sequence, and quantity
-    single = single[single['FG.Quantity'].notnull()]                                #Remove columns where quantity is null
 
+    single = spectronaut.loc[spectronaut['EG.IntPIMID'] == find]            #Only look at the entries where that specific peptide was found
+    single = single[['R.Condition','R.Replicate','EG.IntPIMID','FG.Quantity']]      #Keep only the column indicating condition/spike, peptide sequence, and quantity
+    single = single[single['FG.Quantity'].notnull()]                        #Remove columns where quantity is null
+
+    #Add new column with spiked amount
+    spiked = []
+    for x in single['R.Condition']:
+        amount = float(x.replace('fmol',''))
+        spiked.append(amount)
+
+    single['Spiked'] = spiked
 
 
     df_list = []
@@ -163,6 +171,7 @@ found_heavies = spectronaut.loc[spectronaut['EG.PTMLocalizationProbabilities'].s
 
 for sequence in heavies:
     find = sequence     #Spiked in peptide sequence
+    # print(find)
 
 
     single = found_heavies.loc[found_heavies['EG.IntPIMID'] == find]        #Only look at the entries where that specific peptide was found
