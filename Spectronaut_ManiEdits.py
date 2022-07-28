@@ -21,13 +21,13 @@ platform = 'Pro'
 
 if platform == 'SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]
-    spectronaut = pd.read_csv('20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t', low_memory= False)
+    spectronaut = pd.read_csv(report_directory_path + '20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t', low_memory= False)
     norm_spike = 0.2
 
 
 if platform == 'Pro':
     conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv('20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t', low_memory= False)
+    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t', low_memory= False)
     norm_spike = 1.0
 
 
@@ -38,7 +38,7 @@ if platform == 'Exploris':
 
 # ###Lights###
 summary_lights = {}
-lights = pd.read_csv('Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
+lights = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 
 
 for sequence in lights:
@@ -147,32 +147,16 @@ for sequence in lights:
 
 
 
-        # if int(set['Number of Reps']) > 0:  # If there is quant at this spike level
-        # set_mean = mean(set['Quant_EachRep'].tolist()[0])
-        #
-        # for index, row in df.iterrows():
-        #     current = row['Quant_EachRep']
-        #     if current != None:
-        #         rat = [set_mean/x for x in current]
-        #         ratios.append(rat)
-        #     else:
-        #         ratios.append(None)
-        #
-        # df['Actual Ratios'] = ratios
-        #
-        #
-        # new_df = pd.DataFrame(columns = ['Peptide', 'Spike', 'Expected Ratio', 'Actual Ratio'])
-        # for index, row in df.iterrows():
-        #     peptide = row['Peptide']
-        #     spike = row['Spike']
-        #     expected = row['Expected Ratio']
-        #
-        #     for x in row['Actual Ratios']:
-        #         sub = {'Peptide': peptide, 'Spike': spike, 'Expected Ratio': expected, 'Actual Ratio': x}
-        #         sub = pd.DataFrame.from_dict([sub])
-        #         new_df = pandas.concat([new_df,sub])
-        #
-            new_df.to_csv('PhosphoBG_Curve/' + platform +'_ManiPlotting/' + platform + '_Lights_outputs_Found/' + find+'_replicates_output.tsv', sep = '\t')
+            path = report_directory_path + platform + '_Lights_outputs_Found/PlottingReplicates/'
+            isExist = os.path.exists(path)
+            if not isExist:
+                os.makedirs(path)
+
+            new_df.to_csv(path + find+'_replicates_output.tsv', sep = '\t')
+
+
+
+
 
 ###Heavies###
 #All the same comments applied to the lights code above apply to heavies below
@@ -289,8 +273,15 @@ for sequence in heavies:
                         sub = pd.DataFrame.from_dict([sub])
                         new_df = pandas.concat([new_df,sub])
 
+            path = report_directory_path + platform + '_Heavies_outputs_Found/PlottingReplicates/'
+            isExist = os.path.exists(path)
+                if not isExist:
+                    os.makedirs(path)
 
-            new_df.to_csv('PhosphoBG_Curve/' + platform + '_ManiPlotting/' + platform + '_Heavies_outputs_Found/' + find+'_replicates_output.tsv', sep = '\t')
+            new_df.to_csv(path + find + '_replicates_output.tsv', sep='\t')
+
+
+
 
 
 
