@@ -77,5 +77,11 @@ ratios_for_plotting <- select(ratios_for_plotting, Spike, `Expected Ratio`, `Act
 
 write_tsv(ratios_for_plotting, "C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_Lights_outputs_Found/PercentError.tsv")
 
+ggplot(data = ratios_for_plotting, aes(x = Spike, y=`Percent Error`))+
+  geom_point()+
+  ggtitle("Percent Error Between Expected and Actual Ratios")
+
+
+
 
 

@@ -2,22 +2,29 @@ import pandas as pd
 import re
 import math
 from statistics import mean,stdev,mode
+import os
 
-##Hey!!!!
+
+###USER INPUT###
+
 #Uncomment which instrument you're working on data from
 # platform = 'Exploris'
-platform = 'Pro'
-# platform = 'SCP'
+# platform = 'Pro'
+platform = 'SCP'
 
+report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
+
+
+#Spectronaut output reports found in helium
 if platform == 'SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]               #Spiked amounts of peptide used for this instrument platform
-    spectronaut = pd.read_csv('S:/Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SCP20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')
+    spectronaut = pd.read_csv(report_directory_path + '20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')
 
 
 
 if platform == 'Pro':
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv('S:/Tan/PTMDIAProject_PhosphoBGCurve/Outputs/Pro/20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t')
+    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t')
 
 
 if platform == 'Exploris':
@@ -27,7 +34,9 @@ if platform == 'Exploris':
 
 ###Lights###
 summary_lights = {}
-lights = pd.read_csv('Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
+
+#Modified lights document in lab members folder
+lights = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 
 for sequence in lights:
 
@@ -49,7 +58,7 @@ for sequence in lights:
 
 
     df_list = []
-    for x in conditions:                                    #For every point on the curve, create a new data frame
+    for x in spiked:                                    #For every point on the curve, create a new data frame
 
         spike_label = str(x) + 'fmol'
         if spike_label not in summary_lights:               #If the peptide isn't already in the dictionary, add
@@ -128,13 +137,28 @@ for sequence in lights:
 
     df['Percent Error'] = error     #Add new column to dataframe
 
-    if (df['Number of Reps'] == 0).all():   #If peptide is not found on any point on the curve, it is not found at all
-        df.to_csv('PhosphoBG_Curve/' +platform+'_Lights_outputs_NotFound/' + find + '_output.tsv', sep='\t')
-        # df.to_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Phospho_TestCurve/Found_Lights_heavies_Curves/' + platform + '_Lights_outputs_NotFound/' + find + '_output.tsv', sep='\t')
+    if (df['Number of Reps'] == 0).all():   #If peptide is not found on any point on the curve, it is not found at all\
+        path = report_directory_path + platform + '_Lights_outputs_NotFound/'
+
+        #Create the directory if it doesn't already exist
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+
+        df.to_csv(path + find + '_output.tsv', sep='\t')
+
+
 
     else:                                   #If peptide is found at any point in the curve, send it to the 'Found' folder
-        df.to_csv('PhosphoBG_Curve/' +platform+'_Lights_outputs_Found/' + find+'_output.tsv', sep = '\t')
-        # df.to_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Phospho_TestCurve/Found_Lights_heavies_Curves/' +platform + '_Lights_outputs_Found/' + find + '_output.tsv', sep='\t')
+        path = report_directory_path + platform + '_Lights_outputs_Found/'
+
+        # Create the directory if it doesn't already exist
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+
+        df.to_csv(path + find+'_output.tsv', sep = '\t')
+
 
 summary_lights_compiled = {}
 for point in summary_lights:
@@ -154,7 +178,7 @@ for point in summary_lights:
         summary_lights_compiled[point]['Mean CV'] = None
 
 summary = pd.DataFrame.from_dict((summary_lights_compiled))
-summary.to_csv('PhosphoBG_Curve/' +platform+'_Lights_outputs_Found/' + platform+'_Lights_Summary.tsv', sep = '\t')
+summary.to_csv(report_directory_path + platform + '_Lights_outputs_Found/' + platform + '_Lights_Summary.tsv', sep = '\t')
 
 
 
@@ -165,7 +189,7 @@ summary.to_csv('PhosphoBG_Curve/' +platform+'_Lights_outputs_Found/' + platform+
 #All the same comments applied to the lights code above apply to heavies below
 summary_heavies = {}
 
-heavies = pd.read_csv('Modified_Heavies.tsv', delimiter= '\t')['Modified']
+heavies = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified']
 found_heavies = spectronaut.loc[spectronaut['EG.PTMLocalizationProbabilities'].str.contains('Label')]        #Only look at the entries that contain heavy modification
 
 
@@ -188,7 +212,7 @@ for sequence in heavies:
     single['Spiked'] = spiked
 
     df_list = []
-    for x in conditions:
+    for x in spiked:
 
         spike_label = str(x) + 'fmol'
         if spike_label not in summary_heavies:
@@ -267,13 +291,24 @@ for sequence in heavies:
 
 
     if (df['Number of Reps'] == 0).all():
-        df.to_csv('PhosphoBG_Curve/' + platform+'_Heavies_outputs_NotFound/' + find + '_output.tsv', sep='\t')
-        # df.to_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Phospho_TestCurve/Found_Lights_heavies_Curves/' + platform + '_Heavies_outputs_NotFound/' + find + '_output.tsv',sep='\t')
+        path = report_directory_path + platform + '_Heavies_outputs_NotFound/'
+
+        #Create the directory if it doesn't already exist
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+
+        df.to_csv(path + find + '_output.tsv', sep='\t')
 
     else:
-        df.to_csv('PhosphoBG_Curve/' +platform+'_Heavies_outputs_Found/' + find+'_output.tsv', sep = '\t')
-        # df.to_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Phospho_TestCurve/Found_Lights_heavies_Curves/' + platform + '_Heavies_outputs_Found/' + find + '_output.tsv', sep='\t')
+        path = report_directory_path + platform + '_Heavies_outputs_Found/'
 
+        # Create the directory if it doesn't already exist
+        isExist = os.path.exists(path)
+        if not isExist:
+            os.makedirs(path)
+
+        df.to_csv(path + find + '_output.tsv', sep='\t')
 
 summary_heavies_compiled = {}
 for point in summary_heavies:
@@ -289,7 +324,7 @@ for point in summary_heavies:
     summary_heavies_compiled[point]['Mean CV'] = mean(filtered_cvs)
 
 summary = pd.DataFrame.from_dict((summary_heavies_compiled))
-summary.to_csv('PhosphoBG_Curve/' +platform+'_Heavies_outputs_Found/' + platform+'_Heavies_Summary.tsv', sep = '\t')
+summary.to_csv(report_directory_path + platform + '_Heavies_outputs_Found/' + platform + '_Heavies_Summary.tsv', sep = '\t')
 
 
 
