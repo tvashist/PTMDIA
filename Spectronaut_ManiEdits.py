@@ -14,11 +14,6 @@ platform = 'Pro'
 report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
 
 
-#Select which instrument you're working on data from
-# platform = 'Exploris'
-platform = 'Pro'
-# platform = 'SCP'
-
 if platform == 'SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]
     spectronaut = pd.read_csv(report_directory_path + '20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t', low_memory= False)
@@ -162,7 +157,7 @@ for sequence in lights:
 #All the same comments applied to the lights code above apply to heavies below
 summary_heavies = {}
 
-heavies = pd.read_csv('Modified_Heavies.tsv', delimiter= '\t')['Modified']
+heavies = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified']
 found_heavies = spectronaut.loc[spectronaut['EG.PTMLocalizationProbabilities'].str.contains('Label')]        #Only look at the entries that contain heavy modification
 
 
@@ -170,7 +165,6 @@ for sequence in heavies:
     found_at_spike = 0
     PeptideFound = None        #boolean tracking if peptide was found or not
     find = sequence     #Spiked in peptide sequence
-    # print(find)
 
 
     single = found_heavies.loc[found_heavies['EG.IntPIMID'] == find]        #Only look at the entries where that specific peptide was found
@@ -275,8 +269,8 @@ for sequence in heavies:
 
             path = report_directory_path + platform + '_Heavies_outputs_Found/PlottingReplicates/'
             isExist = os.path.exists(path)
-                if not isExist:
-                    os.makedirs(path)
+            if not isExist:
+                os.makedirs(path)
 
             new_df.to_csv(path + find + '_replicates_output.tsv', sep='\t')
 
