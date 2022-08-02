@@ -9,10 +9,10 @@ import os
 
 #Uncomment which instrument you're working on data from
 # platform = 'Exploris'
-# platform = 'Pro'
-platform = 'SCP'
+platform = 'Pro'
+# platform = 'SCP'
 
-report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
+report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
 
 
 #Spectronaut output reports found in helium
@@ -24,7 +24,7 @@ if platform == 'SCP':
 
 if platform == 'Pro':
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t')
+    spectronaut = pd.read_csv(report_directory_path + '20220802_134606_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', on_bad_lines= 'skip', delimiter= '\t')
 
 
 if platform == 'Exploris':
@@ -58,7 +58,7 @@ for sequence in lights:
 
 
     df_list = []
-    for x in spiked:                                    #For every point on the curve, create a new data frame
+    for x in conditions:                                    #For every point on the curve, create a new data frame
 
         spike_label = str(x) + 'fmol'
         if spike_label not in summary_lights:               #If the peptide isn't already in the dictionary, add
@@ -71,7 +71,7 @@ for sequence in lights:
 
         data['Type Phosphopeptide'] = 'Light Non-Human'     #Annotate whether we spiked in non-human light or human heavy
         data['Peptide'] = find
-        data['Spike'] = spike_label
+        data['Spike'] = str(x) + 'fmol'
         data['Log Spike'] = math.log10(x)                   #Plot log spiked amount vs log quantity
 
         #If spiked peptide is not found at this point on the curve
@@ -212,7 +212,9 @@ for sequence in heavies:
     single['Spiked'] = spiked
 
     df_list = []
-    for x in spiked:
+
+
+    for x in conditions:
 
         spike_label = str(x) + 'fmol'
         if spike_label not in summary_heavies:

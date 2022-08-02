@@ -6,9 +6,9 @@ from statistics import mean,stdev,mode
 
 #First: Convert modifications as annotated in Spectronaut results ouput to simpler annotations including for heavies
 
-setting = '5Trans0.75Loc'
-spectronaut = pd.read_csv('S:/Tan/PTMDIAProject_SearchForHeavies/Out/' + setting + '/PTMDIAProject_SpecLibTest_Report.tsv', delimiter= '\t')
-read_heavies = pd.read_csv('Modified_Heavies.tsv', delimiter= '\t')
+setting = '5TransNoLoc'
+spectronaut = pd.read_csv('S:/Helium_Tan/PTMDIAProject_SearchForHeavies/Out/WithPhosphoBG/5TransNoLoc/20220728_142424_PTMDIAProject_SpecLibTest_5TransNoLocFilter_HeaviesPhosphoBG_Report.tsv', delimiter= '\t')
+read_heavies = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')
 heavies = list(read_heavies['Modified_HeaviesAnnotated'])
 heavies = [x for x in heavies if pd.isnull(x) == False]
 
@@ -20,7 +20,6 @@ for seq in spectronaut['FG.LabeledSequence']:      #This column contains sequenc
     new_annotations.append(new)
 spectronaut['AnnotatedSequence'] = new_annotations
 sub = spectronaut[['R.Condition','R.Replicate','EG.ModifiedSequence','FG.Charge', 'FG.LabeledSequence','AnnotatedSequence']]
-# sub.to_csv('S:/Tan/PTMDIAProject_SearchForHeavies/Out/' + setting + '/PTMDIAProject_SpecLibTest_SimplifiedReport.tsv', sep = '\t')
 
 count = 0
 for h in heavies:

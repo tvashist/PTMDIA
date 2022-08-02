@@ -11,7 +11,7 @@ platform = 'Pro'
 # platform = 'SCP'
 
 
-report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
+report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
 
 
 if platform == 'SCP':
@@ -22,7 +22,7 @@ if platform == 'SCP':
 
 if platform == 'Pro':
     conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t', low_memory= False)
+    spectronaut = pd.read_csv(report_directory_path + '20220802_134606_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter= '\t', low_memory= False)
     norm_spike = 1.0
 
 

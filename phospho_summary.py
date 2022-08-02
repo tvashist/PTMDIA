@@ -2,11 +2,27 @@ import pandas as pd
 import re
 import math
 from statistics import mean,stdev,mode
+import os
 
+#Select which instrument you're working on data from
+# # platform = 'Exploris'
+# platform = 'Pro'
+platform = 'SCP'
+
+
+report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
+
+if platform == 'SCP':
+    spectronaut = pd.read_csv(report_directory_path + '20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')
+
+if platform == 'Pro':
+    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t')
+
+if platform == 'Exploris':
+    spectronaut = pd.read_csv('', delimiter = '\t')
 
 #Get a summary of the number of phosphopeptide and phosphosite counts in the runs without spiked peptides
-descriptor = 'Pro_PhosphoBG_NoSpike'            #How you want your replicates to be annotated
-spectronaut = pd.read_csv('C:/Users/tvashist/PycharmProjects/PTMDIA_Project/20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')     #Entire data frame
+descriptor = platform + '_PhosphoBG_NoSpike'            #How you want your replicates to be annotated
 
 nospike = spectronaut.loc[spectronaut['R.FileName'].str.contains('NoSpike')]        #Only look at the entries that are from the no spike runs
 reps = list(set(nospike['R.FileName']))                                                  #Unique runs in file, so all three reps of no spike runs
@@ -35,7 +51,7 @@ phospho_summary['Phosphopeptides'] = []
 phospho_summary['Phosphosites'] = []
 
 
-print("here before loop!")
+
 for rep in range(0, len(reps)):
     unique_phospho_status = []
 
@@ -58,7 +74,14 @@ for rep in range(0, len(reps)):
 
 
 report = pd.DataFrame.from_dict(phospho_summary)
-report.to_csv('C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_NoSpike_Summary/Summary.tsv', sep = '\t')
+
+path = report_directory_path + platform + '_PhosphoStats/'
+isExist = os.path.exists(path)
+if not isExist:
+    os.makedirs(path)
+
+report.to_csv(path + platform + '_PhosphoStatsSummary.tsv', sep='\t')
+
 
 
 
