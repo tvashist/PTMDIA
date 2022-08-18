@@ -10,17 +10,18 @@ import os
 platform = 'SCP'
 
 
-report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
+report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
 
 if platform == 'SCP':
-    spectronaut = pd.read_csv(report_directory_path + '20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t')
+    spectronaut = pd.read_csv(report_directory_path + '20220818_155021_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t')
 
 if platform == 'Pro':
-    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter= '\t')
+    spectronaut = pd.read_csv(report_directory_path + '20220803_134456_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report_addedFGLabel.tsv', delimiter= '\t', low_memory= False)
 
 if platform == 'Exploris':
     spectronaut = pd.read_csv('', delimiter = '\t')
 
+print("read")
 #Get a summary of the number of phosphopeptide and phosphosite counts in the runs without spiked peptides
 descriptor = platform + '_PhosphoBG_NoSpike'            #How you want your replicates to be annotated
 

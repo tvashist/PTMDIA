@@ -7,17 +7,18 @@ import os
 
 #Select which instrument you're working on data from
 # platform = 'Exploris'
-platform = 'Pro'
-# platform = 'SCP'
+# platform = 'Pro'
+platform = 'SCP'
 
 
-report_directory_path = 'S:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
+report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
 
 
 if platform == 'SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220618_114730_PTMDIAProject_SCP_PhosphoBGCurve_Report.tsv', delimiter='\t', low_memory= False)
+    spectronaut = pd.read_csv(report_directory_path + '20220813_024041_PTMDIAProject_SCP_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t', low_memory= False)
     norm_spike = 0.2
+    print("READ")
 
 
 if platform == 'Pro':
@@ -33,7 +34,7 @@ if platform == 'Exploris':
 
 # ###Lights###
 summary_lights = {}
-lights = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
+lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 
 
 for sequence in lights:
@@ -157,19 +158,43 @@ for sequence in lights:
 #All the same comments applied to the lights code above apply to heavies below
 summary_heavies = {}
 
-heavies = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified']
-found_heavies = spectronaut.loc[spectronaut['EG.PTMLocalizationProbabilities'].str.contains('Label')]        #Only look at the entries that contain heavy modification
+heavies = \
+pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv',delimiter='\t')['Modified_HeaviesAnnotated'][0:234]
+found_heavies = spectronaut.loc[spectronaut['FG.LabeledSequence'].str.contains('Label')]  # Only look at the entries that contain heavy modification
 
+new_annotations = []
+for seq in found_heavies['FG.LabeledSequence']:  # This column contains sequences with all mod annotations including heavy labeling
+    new = seq.replace('Phospho (STY)', '+80').replace('Carbamidomethyl (C)', '+57').replace('Label:13C(6)15N(4)','+10').replace(
+        'Label:13C(6)15N(2)', '+8').replace('[Oxidation (M)]', '').replace('[Label:13C(5)15N(1)]', '').replace(
+        '[Label:13C(6)15N(2)]', '').replace('[Label:T-5]', '').replace('[Label:13C(6)15N(1)]', '').replace(
+        '[Acetyl (Protein N-term)]', '')
+    new = new[1:-1]
+    new_annotations.append(new)
+found_heavies['AnnotatedSequence'] = new_annotations
 
 for sequence in heavies:
+    find = sequence  # Spiked in peptide sequence
     found_at_spike = 0
-    PeptideFound = None        #boolean tracking if peptide was found or not
-    find = sequence     #Spiked in peptide sequence
+    PeptideFound = None
 
-
-    single = found_heavies.loc[found_heavies['EG.IntPIMID'] == find]        #Only look at the entries where that specific peptide was found
-    single = single[['R.Condition','R.Replicate','EG.IntPIMID','FG.Quantity']]
+    single = found_heavies.loc[found_heavies['AnnotatedSequence'] == find]  # Only look at the entries where that specific peptide was found
+    single = single[['R.Condition', 'R.Replicate', 'EG.IntPIMID', 'FG.Quantity', 'AnnotatedSequence']]
     single = single[single['FG.Quantity'].notnull()]
+# summary_heavies = {}
+#
+# heavies = pd.read_csv('Z:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified']
+# found_heavies = spectronaut.loc[spectronaut['EG.PTMLocalizationProbabilities'].str.contains('Label')]        #Only look at the entries that contain heavy modification
+#
+#
+# for sequence in heavies:
+#     found_at_spike = 0
+#     PeptideFound = None        #boolean tracking if peptide was found or not
+#     find = sequence     #Spiked in peptide sequence
+#
+#
+#     single = found_heavies.loc[found_heavies['EG.IntPIMID'] == find]        #Only look at the entries where that specific peptide was found
+#     single = single[['R.Condition','R.Replicate','EG.IntPIMID','FG.Quantity']]
+#     single = single[single['FG.Quantity'].notnull()]
 
 
 
