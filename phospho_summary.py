@@ -7,13 +7,21 @@ import os
 #Select which instrument you're working on data from
 # # platform = 'Exploris'
 # platform = 'Pro'
-platform = 'SCP'
+# platform = 'SCP'
+# platform = 'Pro_SmallLibSearch_LocFilter'
+platform = 'Pro_12fxnOnlySearch_LocFilter'
 
 
 report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
 
 if platform == 'SCP':
     spectronaut = pd.read_csv(report_directory_path + '20220818_155021_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t')
+
+if platform == 'Pro_SmallLibSearch_LocFilter':
+    spectronaut = pd.read_csv(report_directory_path + '20220902_105134_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_Report .tsv',delimiter='\t', low_memory=False)
+
+if platform == 'Pro_12fxnOnlySearch_LocFilter':
+    spectronaut = pd.read_csv(report_directory_path + '20220906_093527_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_12fxnLib0.75Loc_Report.tsv',delimiter='\t', low_memory=False)
 
 if platform == 'Pro':
     spectronaut = pd.read_csv(report_directory_path + '20220803_134456_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report_addedFGLabel.tsv', delimiter= '\t', low_memory= False)
@@ -27,7 +35,7 @@ descriptor = platform + '_PhosphoBG_NoSpike'            #How you want your repli
 
 nospike = spectronaut.loc[spectronaut['R.FileName'].str.contains('NoSpike')]        #Only look at the entries that are from the no spike runs
 reps = list(set(nospike['R.FileName']))                                                  #Unique runs in file, so all three reps of no spike runs
-
+# nospike.to_csv(report_directory_path + "NoSpikesOnly.tsv", sep = '\t')
 
 def count_sites(df):
 
@@ -49,7 +57,7 @@ def count_sites(df):
 phospho_summary = {}
 phospho_summary['Run'] = []
 phospho_summary['Phosphopeptides'] = []
-phospho_summary['Phosphosites'] = []
+# phospho_summary['Phosphosites'] = []
 
 
 
@@ -57,7 +65,7 @@ for rep in range(0, len(reps)):
     unique_phospho_status = []
 
     run = reps[rep]
-    run_id = descriptor +"_"+ "0" + str(rep)                                        #Run descriptor that will go in data frame
+    run_id = descriptor +"_"+ "0" + str(rep+1)                                        #Run descriptor that will go in data frame
 
     phosphos = nospike.loc[nospike['R.FileName'] == run]                            #Subset to just one rep
     phosphos = phosphos.loc[phosphos['EG.IntPIMID'].str.contains('[+80]')]          #All entries that contain phosphorylated amino acids
@@ -67,11 +75,11 @@ for rep in range(0, len(reps)):
     print("I just changed all the mod annotations")
 
     unique_phosphopeptides = len(set(unique_phospho_status))                        #Sequences with unique phosphorylation status
-    phosphosites = count_sites(phosphos)                                            #Unique phosphosites based on location on protein sequence
+    # phosphosites = count_sites(phosphos)                                            #Unique phosphosites based on location on protein sequence
 
     phospho_summary['Run'].append(run_id)
     phospho_summary['Phosphopeptides'].append(unique_phosphopeptides)
-    phospho_summary['Phosphosites'].append(phosphosites)
+    # phospho_summary['Phosphosites'].append(phosphosites)
 
 
 report = pd.DataFrame.from_dict(phospho_summary)
