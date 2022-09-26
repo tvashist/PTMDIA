@@ -5,20 +5,25 @@ from statistics import mean,stdev,mode
 import os
 
 #Select which instrument you're working on data from
-# # platform = 'Exploris'
+# platform = 'Exploris_FAIMS'
+# platform = 'Exploris_NoFAIMS'
 # platform = 'Pro'
 # platform = 'SCP'
 # platform = 'Pro_SmallLibSearch_LocFilter'
 platform = 'Pro_12fxnOnlySearch_LocFilter'
 
+#Select Spectonaut Search Method
+# search = 'directDIA'
+search = 'SpectralLibSearch'
 
-report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
+
+report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/' + search + '/' + platform + "/"     #Where is your Spectronaut output report?
 
 if platform == 'SCP':
     spectronaut = pd.read_csv(report_directory_path + '20220818_155021_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t')
 
 if platform == 'Pro_SmallLibSearch_LocFilter':
-    spectronaut = pd.read_csv(report_directory_path + '20220902_105134_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_Report .tsv',delimiter='\t', low_memory=False)
+    spectronaut = pd.read_csv(report_directory_path + '20220902_105134_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_Report.tsv',delimiter='\t', low_memory=False)
 
 if platform == 'Pro_12fxnOnlySearch_LocFilter':
     spectronaut = pd.read_csv(report_directory_path + '20220906_093527_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_12fxnLib0.75Loc_Report.tsv',delimiter='\t', low_memory=False)
@@ -26,8 +31,11 @@ if platform == 'Pro_12fxnOnlySearch_LocFilter':
 if platform == 'Pro':
     spectronaut = pd.read_csv(report_directory_path + '20220803_134456_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report_addedFGLabel.tsv', delimiter= '\t', low_memory= False)
 
-if platform == 'Exploris':
-    spectronaut = pd.read_csv('', delimiter = '\t')
+if platform == 'Exploris_FAIMS':
+    spectronaut = pd.read_csv(report_directory_path + '20220909_092942_PTMDIAProject_ExplorisFAIMS_directDIA_Report.tsv', delimiter = '\t')
+
+if platform == 'Exploris_NoFAIMS':
+    spectronaut = pd.read_csv(report_directory_path + '20220921_094453_PTMDIAProject_Exploris_DIACurveAnalysis_directDIA_Report.tsv', delimiter = '\t')
 
 print("read")
 #Get a summary of the number of phosphopeptide and phosphosite counts in the runs without spiked peptides
@@ -68,9 +76,9 @@ for rep in range(0, len(reps)):
     run_id = descriptor +"_"+ "0" + str(rep+1)                                        #Run descriptor that will go in data frame
 
     phosphos = nospike.loc[nospike['R.FileName'] == run]                            #Subset to just one rep
-    phosphos = phosphos.loc[phosphos['EG.IntPIMID'].str.contains('[+80]')]          #All entries that contain phosphorylated amino acids
+    phosphos = phosphos.loc[phosphos['EG.IntPIMID'].str.contains('80')]          #All entries that contain phosphorylated amino acids
     for x in phosphos['EG.IntPIMID']:
-        new = x.replace('[+16]','').replace('[+57]','')                             #Remove annotations for oxidized methionine and carbamidomethylation
+        new = x.replace('[+16]','').replace('[+57]','').replace('[+42]','')                             #Remove annotations for oxidized methionine and carbamidomethylation
         unique_phospho_status.append(new)
     print("I just changed all the mod annotations")
 

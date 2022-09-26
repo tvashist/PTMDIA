@@ -6,7 +6,7 @@ library(ggplot2)
 library(readr)
 
 
-setwd("C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_Lights_outputs_Found/")
+setwd("Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/Exploris_FAIMS/Exploris_FAIMS_Lights_outputs_Found/")
 
 
 list_files = list.files(pattern = "_output",recursive = T)
@@ -33,7 +33,7 @@ LL2$Spike <- factor(LL2$Spike, levels = ratios_for_plotting$Spike)
 
 ggplot(LL2 , aes(y = 1/`Actual Ratios`, x= Spike, color=Spike ))+
   geom_boxplot()+
-  geom_jitter()+
+  geom_jitter(size = 0.5)+
   scale_y_log10()+
   theme_bw()+
   geom_point(data = ratios_for_plotting, aes(x = Spike, y = 1/`Expected Ratio`),
@@ -75,7 +75,7 @@ ratios_for_plotting$`Actual Ratio Median` <- actual_median
 ratios_for_plotting <- select(ratios_for_plotting, Spike, `Expected Ratio`, `Actual Ratio Median`, `Percent Error`)
 
 
-write_tsv(ratios_for_plotting, "C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_Lights_outputs_Found/PercentError.tsv")
+write_tsv(ratios_for_plotting, "Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/Pro_SmallLibSearch/Pro_SmallLibSearch_Heavies_outputs_Found/PercentError.tsv")
 
 ggplot(data = ratios_for_plotting, aes(x = Spike, y=`Percent Error`))+
   geom_point()+

@@ -8,12 +8,13 @@ import os
 ###USER INPUT###
 
 #Uncomment which instrument you're working on data from
-# platform = 'Exploris'
+# platform = 'Exploris_FAIMS'
+platform = 'Exploris_NoFAIMS'
 # platform = 'Pro_SmallLibSearch_LocFilter'
 # platform = 'SCP'
-platform = 'Pro_12fxnOnlySearch_LocFilter'
+# platform = 'Pro_12fxnOnlySearch_LocFilter'
 
-report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
+report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
 
 
 #Spectronaut output reports found in helium
@@ -37,9 +38,13 @@ if platform == 'Pro':
     spectronaut = pd.read_csv(report_directory_path + '20220803_134456_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report_addedFGLabel.tsv', on_bad_lines= 'skip', delimiter= '\t',low_memory = False)
 
 
-if platform == 'Exploris':
+if platform == 'Exploris_FAIMS':
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv('', delimiter = '\t')
+    spectronaut = pd.read_csv(report_directory_path + '20220909_092942_PTMDIAProject_ExplorisFAIMS_directDIA_Report.tsv', delimiter = '\t')
+
+if platform == 'Exploris_NoFAIMS':
+    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
+    spectronaut = pd.read_csv(report_directory_path + '20220921_094453_PTMDIAProject_Exploris_DIACurveAnalysis_directDIA_Report.tsv', delimiter = '\t')
 
 
 
