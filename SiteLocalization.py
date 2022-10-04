@@ -8,13 +8,17 @@ import os
 
 #Uncomment which instrument you're working on data from
 platform = 'Pro'
+# platform = 'Pro_SmallLibSearch_LocFilter'
 
 report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/' + platform + "/"     #Where is your Spectronaut output report?
 
 if platform == 'Pro':
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
     spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter = '\t')
-    print('READ')
+
+if platform == 'Pro_SmallLibSearch_LocFilter':
+    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
+    spectronaut = pd.read_csv(report_directory_path + '20220902_105134_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_Report.tsv', delimiter = '\t')
 
 #Modified lights document in lab members folder
 lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
@@ -25,10 +29,25 @@ heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modi
 heavies_stripped = [re.sub(pattern, '', s) for s in heavies]
 
 
+#Finds all pSTY sites in sequence
 def get_pos(mod_seq):
+    mod_sites = []
     seq = mod_seq.split('_')[1]
-    mod_site = seq.find('[')
-    return int(mod_site)
+    seq = seq.replace('[+57]','').replace('[+16]','')
+
+    pos = seq.find('[+80]')
+
+    while pos != -1:
+        mod_sites.append(pos-1)
+        seq = seq[:pos] + seq[pos+5:]
+        # print(seq)
+        pos = seq.find('[+80]')
+
+    return (mod_sites)      #Returns positions of all phosphorylated STY's as index, NOT absolute position in sequence
+
+# print(get_pos('_C[+57]LS[+80]S[+80]IVDSISSEER_'))
+
+
 
 def localize(spiked_list, type_spike):
 
@@ -56,6 +75,7 @@ def localize(spiked_list, type_spike):
 
 
 
+
     report = {}
     for c in conditions:
 
@@ -65,6 +85,7 @@ def localize(spiked_list, type_spike):
         if type_spike == 'Heavy':
             spec_conc = spec_conc.loc[spec_conc['EG.PTMLocalizationProbabilities'].str.contains(str('Label'))]      #For heavy spikes, look only at heavy versions of the peptides
         conc = spec_conc.loc[spec_conc['PEP.StrippedSequence'].isin(spiked_list)]
+        # print(len(conc))
         conc = conc.dropna(subset=['EG.PTMAssayProbability'])
 
         for index, row in conc.iterrows():
@@ -76,13 +97,15 @@ def localize(spiked_list, type_spike):
 
             info = tracker_dict[seq]  # STY site info
 
-            site = get_pos(mod_seq) - 1  # indexed char position
-            # print(site)
 
-            sty_num = info[site] - 1
+            sites = get_pos(mod_seq) # indexed char position
 
-            loc_prob = prob[sty_num]
-            probabilities.append(loc_prob)
+            for s in sites:
+
+                sty_num = info[s]               #Which number sty is it in the sequence
+
+                loc_prob = prob[sty_num-1]
+                probabilities.append(loc_prob)
 
         k = str(c) + ' fmol'
         if k not in report:
@@ -101,8 +124,8 @@ def localize(spiked_list, type_spike):
 
 
 
-report = localize(heavies_stripped, 'Heavy')
-
+# report = localize(heavies_stripped, 'Heavy')
+report = localize(lights['CAPS'], 'Lights')
 
 
 
