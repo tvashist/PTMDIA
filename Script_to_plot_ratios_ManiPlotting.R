@@ -5,7 +5,7 @@ require(data.table)
 library(ggplot2)
 library("RColorBrewer")
 
-setwd("C:/Users/tvashist/PycharmProjects/PTMDIA_Project/PhosphoBG_Curve/SCP_ManiPlotting/SCP_Lights_outputs_Found/")
+setwd("Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/Pro_SmallLibSearch_LocFilter/Pro_SmallLibSearch_LocFilter_Heavies_outputs_Found/PlottingReplicates/")
 
 
 list_files = list.files(pattern = "replicates_output",recursive = T)
@@ -18,7 +18,7 @@ LL2 <- bind_rows(LL)
 View(LL2)
 
 
-set_conc <- 0.2
+set_conc <- 1.0
 
 
 
@@ -40,9 +40,10 @@ ggplot(LL2 , mapping = aes(y = 1/`Actual Ratio`, x= Spike))+
   scale_y_log10()+
   theme_bw()+
   geom_point(data = ratios_for_plotting, aes(x = Spike, y = 1/`Expected Ratio`),
-             shape = 95, size =8,
-             color= "black", alpha = 0.5)+
-  theme(axis.text.x = element_text(angle=90)) 
+             shape = 95, size =10,
+             color= "black", alpha = 1)+
+  theme(axis.text.x = element_text(angle=90)) +
+  theme(legend.position = "none")
 
 
 LL2 %>%

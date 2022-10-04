@@ -13,14 +13,14 @@ setwd('Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/')
 
 conditions <- c(0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0)
 
-spectronaut <- read.table('directDIA/Pro/20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', sep = '\t', header= TRUE, quote = '') %>% mutate(conc = as.numeric(gsub(R.Condition, pattern = "fmol", replacement = "")))
+spectronaut <- read.table('directDIA/Pro/20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', sep = '\t', header= TRUE, quote = '') %>% mutate(conc = as.numeric(gsub(R.Condition, pattern = "fmol", replacement = ""))) 
 
 
 
 find_localization <- function(level){
   
   spike <- spectronaut %>% filter(conc == level) %>% filter(EG.IntPIMID %in% lights) #Dataframe with all the lights detected at that specific concentration
-
+  
   ggplot(spike,aes(x=EG.PTMAssayProbability))+
     geom_histogram(binwidth = 0.05)+
     xlab("PTM Localization Probability")+
@@ -32,7 +32,13 @@ find_localization <- function(level){
   
 }
 
-lapply(conditions[1:2], find_localization)
+find_localization(2.0)
+
+
+#Make changes to heavies
+
+
+
 
 
 

@@ -6,7 +6,7 @@ library(ggplot2)
 library(readr)
 
 
-setwd("Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/Exploris_FAIMS/Exploris_FAIMS_Lights_outputs_Found/")
+setwd("Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/Exploris_NoFAIMS/Exploris_NoFAIMS_Heavies_outputs_Found/")
 
 
 list_files = list.files(pattern = "_output",recursive = T)
@@ -30,6 +30,7 @@ ratios_for_plotting <- LL2 %>%
 
 ratios_for_plotting$Spike  <- factor(ratios_for_plotting$Spike, levels = ratios_for_plotting$Spike)
 LL2$Spike <- factor(LL2$Spike, levels = ratios_for_plotting$Spike)
+View(LL2)
 
 ggplot(LL2 , aes(y = 1/`Actual Ratios`, x= Spike, color=Spike ))+
   geom_boxplot()+

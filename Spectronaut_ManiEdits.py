@@ -7,8 +7,8 @@ import os
 
 #Select which instrument you're working on data from
 # platform = 'Exploris'
-# platform = 'Pro'
-platform = 'SCP'
+platform = 'Pro_SmallLibSearch_LocFilter'
+# platform = 'SCP'
 
 
 report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
@@ -18,13 +18,19 @@ if platform == 'SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]
     spectronaut = pd.read_csv(report_directory_path + '20220813_024041_PTMDIAProject_SCP_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t', low_memory= False)
     norm_spike = 0.2
-    print("READ")
+
 
 
 if platform == 'Pro':
     conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
     spectronaut = pd.read_csv(report_directory_path + '20220802_134606_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter= '\t', low_memory= False)
     norm_spike = 1.0
+
+if platform == 'Pro_SmallLibSearch_LocFilter':
+    conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
+    spectronaut = pd.read_csv(report_directory_path + '20220902_105134_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_Report.tsv', delimiter= '\t', low_memory= False)
+    norm_spike = 1.0
+    print("READ")
 
 
 if platform == 'Exploris':
@@ -158,7 +164,7 @@ for sequence in lights:
 #All the same comments applied to the lights code above apply to heavies below
 summary_heavies = {}
 
-heavies = \
+heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:234]
 pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv',delimiter='\t')['Modified_HeaviesAnnotated'][0:234]
 found_heavies = spectronaut.loc[spectronaut['FG.LabeledSequence'].str.contains('Label')]  # Only look at the entries that contain heavy modification
 
