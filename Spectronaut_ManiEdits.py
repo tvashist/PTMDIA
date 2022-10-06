@@ -28,7 +28,7 @@ if platform == 'Pro':
 
 if platform == 'Pro_SmallLibSearch_LocFilter':
     conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220902_105134_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_Report.tsv', delimiter= '\t', low_memory= False)
+    spectronaut = pd.read_csv(report_directory_path + '20221005_083544_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv', delimiter= '\t', low_memory= False)
     norm_spike = 1.0
     print("READ")
 

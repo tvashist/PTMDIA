@@ -20,8 +20,9 @@ View(lights$Modified)
 report <- read_tsv('report.tsv')
 View(head(report))
 filtered <- report %>% filter(grepl('UniMod:21', Modified.Sequence)) %>% filter(Stripped.Sequence %in% lights$CAPS) 
-changed <- filtered %>% gsub(pattern = 'UniMod', replacement= 'hello', filtered$Modified.Sequence)
-View(changed)
+filtered$Modified.Sequence <- gsub('UniMod:21', '+80', filtered$Modified.Sequence) %>% gsub("[(UniMod:21)]", "boo", filtered$Modified.Sequence) #Need to replace the parentheses with square brackets
+View(filtered)
+
 
 # 
 # lib <- read_tsv('spect_lib.tsv')
