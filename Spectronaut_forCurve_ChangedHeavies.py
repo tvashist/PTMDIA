@@ -8,52 +8,36 @@ import os
 ###USER INPUT###
 
 #Uncomment which instrument you're working on data from
+# platform = 'Exploris'
 # platform = 'Exploris_FAIMS'
-# platform = 'Exploris_NoFAIMS'
-platform = 'Pro_SmallLibSearch_LocFilter'
-# platform = 'SCP'
-# platform = 'Pro_12fxnOnlySearch_LocFilter'
+platform = 'TimsTOF_Pro'
+# platform = 'TimsTOF_SCP'
 
-report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
+#Library
+library = 'Library_3SS_Spiked'
+# library = 'Library_12fxn_NotSpiked'
+# library = 'Library_Combined'
+# library = 'directDIA'
 
+report = '20221005_083544_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv'
 
-#Spectronaut output reports found in helium
-if platform == 'SCP':
+report_directory_path = 'Z:/Helium_Tan/FINAL_PTMDIA/' + platform + '/Spectronaut/' + library + '/SearchOutputs/'    #Where is your Spectronaut output report?
+
+spectronaut = pd.read_csv(report_directory_path+report, delimiter='\t', low_memory=False)
+print("Report read")
+
+if platform == 'TimsTOF_SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]               #Spiked amounts of peptide used for this instrument platform
-    spectronaut = pd.read_csv(report_directory_path + '20220813_024041_PTMDIAProject_SCP_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t', low_memory = False)
 
-
-if platform == 'Pro_SmallLibSearch_LocFilter':
+else:
     conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20221005_083544_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv', on_bad_lines= 'skip', delimiter= '\t',low_memory = False)
-    print("READ")
-
-if platform == 'Pro_12fxnOnlySearch_LocFilter':
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220906_093527_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_12fxnLib0.75Loc_Report.tsv',delimiter='\t', low_memory=False)
 
 
-if platform == 'Pro':
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220803_134456_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report_addedFGLabel.tsv', on_bad_lines= 'skip', delimiter= '\t',low_memory = False)
-
-
-if platform == 'Exploris_FAIMS':
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220909_092942_PTMDIAProject_ExplorisFAIMS_directDIA_Report.tsv', delimiter = '\t')
-
-if platform == 'Exploris_NoFAIMS':
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220921_094453_PTMDIAProject_Exploris_DIACurveAnalysis_directDIA_Report.tsv', delimiter = '\t')
-
-
-
-#
 ###Lights###
 summary_lights = {}
 
 #Modified lights document in lab members folder
-lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
+lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 
 for sequence in lights:
 
@@ -215,7 +199,7 @@ if lightsExist:
 #All the same comments applied to the lights code above apply to heavies below
 summary_heavies = {}
 
-heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:234]
+heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:234]
 found_heavies = spectronaut.loc[spectronaut['FG.LabeledSequence'].str.contains('Label')]        #Only look at the entries that contain heavy modification
 
 

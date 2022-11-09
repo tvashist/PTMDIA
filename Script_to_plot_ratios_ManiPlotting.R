@@ -5,8 +5,8 @@ require(data.table)
 library(ggplot2)
 library("RColorBrewer")
 
-setwd("Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/Pro_SmallLibSearch_LocFilter/Pro_SmallLibSearch_LocFilter_Heavies_outputs_Found/PlottingReplicates/")
 
+setwd("Z:/Helium_Tan/FINAL_PTMDIA/TimsTOF_Pro/Spectronaut/directDIA/SearchOutputs/TimsTOF_Pro_AllSpikes_Replicates") 
 
 list_files = list.files(pattern = "replicates_output",recursive = T)
 
@@ -15,10 +15,10 @@ LL <- lapply(list_files, FUN = function(L){
 })
 
 LL2 <- bind_rows(LL)
-View(LL2)
+# View(LL2)
 
 
-set_conc <- 1.0
+set_conc <- 0.2
 
 
 

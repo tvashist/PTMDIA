@@ -6,7 +6,7 @@ library(ggplot2)
 library(readr)
 
 
-setwd("Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/directDIA/Exploris_NoFAIMS/Exploris_NoFAIMS_Heavies_outputs_Found/")
+setwd("Z:/Helium_Tan/FINAL_PTMDIA/TimsTOF_Pro/DIANN/Library_3SS_Spiked/SearchOutputs/TimsTOF_Pro_Heavies_outputs_Found")
 
 
 list_files = list.files(pattern = "_output",recursive = T)
@@ -17,9 +17,13 @@ LL <- lapply(list_files, FUN = function(L){
 
 
 
+
 LL2 <- bind_rows(LL) %>%
   filter(!is.na(`Mean Quant`)) %>%
   mutate(conc = as.numeric(gsub(Spike, pattern = "fmol", replacement = "")))
+
+ten <- LL2 %>% filter(Spike == '10.0fmol')
+View(ten)
 
 
 ratios_for_plotting <- LL2 %>%
@@ -27,10 +31,14 @@ ratios_for_plotting <- LL2 %>%
   distinct() %>%
   arrange(conc)
 
+LL2 %>%
+  group_by(Spike) %>%
+  tally()
+
 
 ratios_for_plotting$Spike  <- factor(ratios_for_plotting$Spike, levels = ratios_for_plotting$Spike)
 LL2$Spike <- factor(LL2$Spike, levels = ratios_for_plotting$Spike)
-View(LL2)
+# View(LL2)
 
 ggplot(LL2 , aes(y = 1/`Actual Ratios`, x= Spike, color=Spike ))+
   geom_boxplot()+
@@ -43,9 +51,7 @@ ggplot(LL2 , aes(y = 1/`Actual Ratios`, x= Spike, color=Spike ))+
   theme(axis.text.x = element_text(angle=90))
 
 
-LL2 %>%
-  group_by(Spike) %>%
-  tally()
+
 
 actual_median <- c()
 errors <- c()

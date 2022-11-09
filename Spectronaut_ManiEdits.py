@@ -5,42 +5,43 @@ import math
 from statistics import mean,stdev,mode
 import os
 
-#Select which instrument you're working on data from
+def makePath(filepath):
+    isExist = os.path.exists(filepath)
+    if not isExist:
+        os.makedirs(filepath)
+
+
+#Uncomment which instrument you're working on data from#
 # platform = 'Exploris'
-platform = 'Pro_SmallLibSearch_LocFilter'
-# platform = 'SCP'
+# platform = 'Exploris_FAIMS'
+platform = 'TimsTOF_Pro'
+# platform = 'TimsTOF_SCP'
 
+#Library#
+# library = 'Library_3SS_Spiked'
+# library = 'Library_12fxn_NotSpiked'
+# library = 'Library_Combined'
+library = 'directDIA'
 
-report_directory_path = 'Z:/Helium_Tan/PTMDIAProject_PhosphoBGCurve/Outputs/SpectralLibSearch/' + platform + "/"     #Where is your Spectronaut output report?
-
-
-if platform == 'SCP':
-    conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220813_024041_PTMDIAProject_SCP_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter='\t', low_memory= False)
+if platform == 'TimsTOF_SCP':
+    conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]               #Spiked amounts of peptide used for this instrument platform
     norm_spike = 0.2
 
-
-
-if platform == 'Pro':
-    conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220802_134606_PTMDIAProject_DIACurveAnalysis_WithSpecLib_Report.tsv', delimiter= '\t', low_memory= False)
+else:
+    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
     norm_spike = 1.0
 
-if platform == 'Pro_SmallLibSearch_LocFilter':
-    conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20221005_083544_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv', delimiter= '\t', low_memory= False)
-    norm_spike = 1.0
-    print("READ")
+
+report_directory_path = 'Z:/Helium_Tan/FINAL_PTMDIA/' + platform + '/Spectronaut/' + library + '/SearchOutputs/'
+report = '20221027_100139_PTMDIAProject_TimsTOFPro_directDIA_DIACurveAnalysis_Report.tsv'
+spectronaut = pd.read_csv(report_directory_path + report, delimiter='\t', low_memory=False)
+print('read')
 
 
-if platform == 'Exploris':
-    conditions = [0.04, 0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv('20220411_084730_PTMDIAProject_PhoshpoTestCurve_DIA_Exploris_Report.tsv', delimiter = '\t', low_memory= False)
-    norm_spike = 1.0
 
 # ###Lights###
 summary_lights = {}
-lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
+lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Lights.tsv', delimiter= '\t')['Modified']        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 
 
 for sequence in lights:
@@ -84,6 +85,7 @@ for sequence in lights:
 
         #If spiked peptide is not found at this point on the curve
         if len(current) == 0:
+            data['Quant_EachRep'] = []
             data['Number of Reps'] = 0
             data['Mean Quant'] = None
             data['Log Mean Quant'] = None
@@ -121,7 +123,7 @@ for sequence in lights:
         ratios = []
         set = df[df['Spike'] == norm_spike]
         # print(set)
-        if int(set['Number of Reps']) > 0:               #If there is quant at this spike level
+        if len(set) > 0:               #If there is quant at this spike level
             set_mean = mean(set['Quant_EachRep'].tolist()[0])
 
             for index, row in df.iterrows():
@@ -150,11 +152,15 @@ for sequence in lights:
 
 
             path = report_directory_path + platform + '_Lights_outputs_Found/PlottingReplicates/'
-            isExist = os.path.exists(path)
-            if not isExist:
-                os.makedirs(path)
+            all_spikes_path = report_directory_path + platform + '_AllSpikes_Replicates/'
 
-            new_df.to_csv(path + find+'_replicates_output.tsv', sep = '\t')
+            makePath(path)
+            makePath(all_spikes_path)
+
+
+            new_df.to_csv(path + find + '_replicates_output.tsv', sep='\t')
+            new_df.to_csv(all_spikes_path + find + '_replicates_output.tsv', sep='\t')
+
 
 
 
@@ -164,8 +170,8 @@ for sequence in lights:
 #All the same comments applied to the lights code above apply to heavies below
 summary_heavies = {}
 
-heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:234]
-pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv',delimiter='\t')['Modified_HeaviesAnnotated'][0:234]
+heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:234]
+pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Heavies.tsv',delimiter='\t')['Modified_HeaviesAnnotated'][0:234]
 found_heavies = spectronaut.loc[spectronaut['FG.LabeledSequence'].str.contains('Label')]  # Only look at the entries that contain heavy modification
 
 new_annotations = []
@@ -231,6 +237,7 @@ for sequence in heavies:
         data['Log Spike'] = math.log10(x)
 
         if len(current) == 0:
+            data['Quant_EachRep'] = []
             data['Number of Reps'] = 0
             data['Mean Quant'] = None
             data['Log Mean Quant'] = None
@@ -272,7 +279,9 @@ for sequence in heavies:
     if Found == True:
         ratios = []
         set = df[df['Spike'] == norm_spike]
-        if int(set['Number of Reps']) > 0:               #If there is quant at this spike level
+
+        quants = set['Quant_EachRep'].tolist()[0]
+        if len(quants) > 0:               #If there is quant at this spike level
             set_mean = mean(set['Quant_EachRep'].tolist()[0])
 
             for index, row in df.iterrows():
@@ -299,11 +308,14 @@ for sequence in heavies:
                         new_df = pandas.concat([new_df,sub])
 
             path = report_directory_path + platform + '_Heavies_outputs_Found/PlottingReplicates/'
-            isExist = os.path.exists(path)
-            if not isExist:
-                os.makedirs(path)
+            all_spikes_path = report_directory_path + platform + '_AllSpikes_Replicates/'
+
+            makePath(path)
+            makePath(all_spikes_path)
 
             new_df.to_csv(path + find + '_replicates_output.tsv', sep='\t')
+            new_df.to_csv(all_spikes_path + find + '_replicates_output.tsv', sep='\t')
+
 
 
 

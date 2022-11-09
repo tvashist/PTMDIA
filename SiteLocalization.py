@@ -7,45 +7,36 @@ import os
 ###USER INPUT###
 
 #Uncomment which instrument you're working on data from
-# platform = 'Pro'
-# platform = 'Pro_SmallLibSearch_LocFilter'
-platform = "TimsTOF_SCP"
 # platform = 'Exploris'
-# platform = 'Exploris_FAIMS'
-
+platform = 'Exploris_FAIMS'
+# platform = 'TimsTOF_Pro'
+# platform = "TimsTOF_SCP"
 
 #Uncommment which library you used
-library = "Library_3SS_Spiked"
+library = 'Library_3SS_Spiked'
+# library = 'Library_12fxn_NotSpiked'
+# library = 'Library_Combined'
+# library = 'directDIA'
 
 
 report_directory_path = "Z:/Helium_Tan/FINAL_PTMDIA/" + platform + "/Spectronaut/" + library + "/SearchOutputs/"     #Where is your Spectronaut output report?
+report = '20221013_151752_PTMDIAProject_ExplorisFAIMS_3SSLib_DIACurveAnalysis_Report.tsv'
+spectronaut = pd.read_csv(report_directory_path + report, sep=  '\t', low_memory= False )
 
-if platform == 'Pro' :
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220714_100348_PTMDIAProject_Pro_PhosphoBG_Report.tsv', delimiter = '\t')
-
-if platform == 'Exploris' :
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220921_094453_PTMDIAProject_Exploris_DIACurveAnalysis_directDIA_Report.tsv', delimiter = '\t')
-
-if platform == 'Exploris_FAIMS' :
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20220909_092942_PTMDIAProject_ExplorisFAIMS_directDIA_Report.tsv', delimiter = '\t')
-
-if platform == 'Pro_SmallLibSearch_LocFilter':
-    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
-    spectronaut = pd.read_csv(report_directory_path + '20221005_083544_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv', delimiter = '\t')
 
 if platform == 'TimsTOF_SCP':
     conditions = [0.004, 0.01, 0.02, 0.04, 0.1, 0.2, 0.4, 1.0, 2.0]
-    spectronaut = pd.read_csv(report_directory_path + '20221006_101509_FINAL_PTMDIAProject_TimsTOFSCP_DIACurveAnalysis_3SSLib_Report.tsv', delimiter = '\t')
+
+else:
+    conditions = [0.1, 0.2, 0.4, 1.0, 2.0, 4.0, 10.0]
+
 
 #Modified lights document in lab members folder
-lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Lights.tsv', delimiter= '\t')        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
+lights = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Lights.tsv', delimiter= '\t')        #Modified sequence annotates phosphopeptides as they appear on Spectronaut
 lights['CAPS'] = lights['Peptides'].str.upper()
 
 pattern = r'\[.*?\]'
-heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified_MatchesSpectronaut/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:234]
+heavies = pd.read_csv('Y:/LabMembers/Tan/DIA_QuantitativePTMs/Peptide_Lists/Modified/Modified_Heavies.tsv', delimiter= '\t')['Modified_HeaviesAnnotated'][0:233]
 heavies_stripped = [re.sub(pattern, '', s) for s in heavies]
 
 
