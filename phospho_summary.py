@@ -7,29 +7,31 @@ import os
 #Uncomment which instrument you're working on data from#
 # platform = 'Exploris'
 # platform = 'Exploris_FAIMS'
-platform = 'TimsTOF_Pro'
-# platform = 'TimsTOF_SCP'
+# platform = 'TimsTOF_Pro'
+platform = 'TimsTOF_SCP'
 
 #Library#
-# library = 'Library_3SS_Spiked'
+library = 'Library_3SS_Spiked'
 # library = 'Library_12fxn_NotSpiked'
-library = 'Library_Combined'
+# library = 'Library_Combined'
 # library = 'directDIA'
 
-report_directory_path = 'Z:/Helium_Tan/FINAL_PTMDIA/' + platform + '/Spectronaut/' + library + '/SearchOutputs/'
-report = '20221108_134137_PTMDIAProject_TimsTOFPro_CombinedLib_DIACurveAnalysis_Report.tsv'
+# report_directory_path = 'Z:/Helium_Tan/FINAL_PTMDIA/' + platform + '/Spectronaut/' + library + '/SearchOutputs/'
+report_directory_path = 'Z:/Alexi/TimsTOF_Jurkat_iRTs_phospho/'
+report = '20221117_155033_Phospho_Jurkat_with_Pro12FxLibv1_Report_Version2_xls.tsv'
 spectronaut = pd.read_csv(report_directory_path + report, delimiter='\t', low_memory=False)
 
 
 print("read")
 #Get a summary of the number of phosphopeptide and phosphosite counts in the runs without spiked peptides
-descriptor = platform + '_PhosphoBG_NoSpike'            #How you want your replicates to be annotated
+# descriptor = platform + '_PhosphoBG_NoSpike'            #How you want your replicates to be annotated
+descriptor = "Pro_12fxnLibrary"
 
-
-nospike = spectronaut.loc[spectronaut['R.FileName'].str.contains('NoSpike')]        #Only look at the entries that are from the no spike runs
+# nospike = spectronaut.loc[spectronaut['R.FileName'].str.contains('NoSpike')]        #Only look at the entries that are from the no spike runs
+nospike = spectronaut
 reps = list(set(nospike['R.FileName']))                                                  #Unique runs in file, so all three reps of no spike runs
 # nospike.to_csv(report_directory_path + "NoSpikesOnly.tsv", sep = '\t')
-
+print(reps)
 def count_sites(df):
 
     sites = []
@@ -58,8 +60,8 @@ for rep in range(0, len(reps)):
     unique_phospho_status = []
 
     run = reps[rep]
-    run_id = descriptor +"_"+ "0" + str(rep+1)                                        #Run descriptor that will go in data frame
-
+    # run_id = descriptor +"_"+ "0" + str(rep+1)                                        #Run descriptor that will go in data frame
+    run_id = run
     phosphos = nospike.loc[nospike['R.FileName'] == run]                            #Subset to just one rep
     phosphos = phosphos.loc[phosphos['EG.IntPIMID'].str.contains('80')]          #All entries that contain phosphorylated amino acids
     for x in phosphos['EG.IntPIMID']:
@@ -85,7 +87,7 @@ isExist = os.path.exists(path)
 if not isExist:
     os.makedirs(path)
 
-report.to_csv(path + platform + '_PhosphoStatsSummary.tsv', sep='\t')
+report.to_csv(path + platform + descriptor + '_PhosphoStatsSummary.tsv', sep='\t')
 
 
 

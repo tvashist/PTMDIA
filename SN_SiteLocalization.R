@@ -8,12 +8,12 @@ library(tidyverse)
 
 
 
-setwd('Z:/Helium_Tan/FINAL_PTMDIA/Exploris_FAIMS/Spectronaut/Library_3SS_Spiked/SearchOutputs/Exploris_FAIMS_UnfilteredSiteLocalization/')
+setwd('Z:/Helium_Tan/FINAL_PTMDIA/TimsTOF_SCP/Spectronaut/Library_3SS_Spiked/SearchOutputs/TimsTOF_SCP_UnfilteredSiteLocalization/')
 
 
-dist <- read_tsv('Heavy_UnfilteredSiteLocalization.tsv')  %>% select(2:8) %>% gather()
+dist <- read_tsv('Lights_UnfilteredSiteLocalization.tsv')  %>% select(2:10) %>% gather()
 
-perc_loc <- read_tsv('Heavy_PercLocalized.tsv') %>% select(2:8) %>% gather()
+perc_loc <- read_tsv('Heavy_PercLocalized.tsv') %>% select(2:10) %>% gather()
 
 
 
@@ -26,8 +26,9 @@ other_levels <- c('0.1 fmol', '0.2 fmol', '0.4 fmol', '1.0 fmol', '2.0 fmol', '4
 
 ggplot(dist, aes(value)) +
   geom_histogram(binwidth = 0.1) +
-  facet_grid(~factor(key, levels = other_levels )) +
-  xlab('pSTY Site Localization Score')
+  facet_grid(~factor(key, levels = SCP_levels )) +
+  xlab('pSTY Site Localization Score')+
+  ggtitle('Spectronaut')
 
 ggplot(perc_loc, aes(x= key, y = value)) +
   geom_bar(stat = 'identity') +
@@ -38,7 +39,7 @@ ggplot(perc_loc, aes(x= key, y = value)) +
 
 
 
-
+# hist(diann$PTM.Site.Confidence)
 
 
 
