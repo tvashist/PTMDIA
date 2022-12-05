@@ -6,9 +6,9 @@ import os
 
 #Uncomment which instrument you're working on data from#
 # platform = 'Exploris'
-# platform = 'Exploris_FAIMS'
+platform = 'Exploris_FAIMS'
 # platform = 'TimsTOF_Pro'
-platform = 'TimsTOF_SCP'
+# platform = 'TimsTOF_SCP'
 
 #Library#
 library = 'Library_3SS_Spiked'
@@ -17,8 +17,8 @@ library = 'Library_3SS_Spiked'
 # library = 'directDIA'
 
 # report_directory_path = 'Z:/Helium_Tan/FINAL_PTMDIA/' + platform + '/Spectronaut/' + library + '/SearchOutputs/'
-report_directory_path = 'Z:/Alexi/TimsTOF_Jurkat_iRTs_phospho/'
-report = '20221117_155033_Phospho_Jurkat_with_Pro12FxLibv1_Report_Version2_xls.tsv'
+report_directory_path = 'Y:\\LabMembers\\Tan\\CompGroup\\PTMSiteCollapse\\'
+report = '20221122_163329_PTMDIAProject_ExplorisFAIMS_3SSLib_DIACurveAnalysis_Report.tsv'
 spectronaut = pd.read_csv(report_directory_path + report, delimiter='\t', low_memory=False)
 
 
