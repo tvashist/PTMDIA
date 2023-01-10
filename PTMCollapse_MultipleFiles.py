@@ -1,3 +1,6 @@
+import argparse
+import sys
+
 import pandas as pd
 pd.options.mode.chained_assignment = None
 import re
@@ -6,12 +9,26 @@ from statistics import mean,stdev,mode
 import os
 import numpy as np
 
+def my_parser():
+    parser = argparse.ArgumentParser()
+
+    #Input File
+    parser.add_argument('--filename', type = str, required=True)
+
+    #Working Directory
+    parser.add_argument('--directory', type = str,  required = True)
+
+    return parser
+
+
 def prepare(wd, file_name):
     report = pd.read_csv(wd + file_name, delimiter ='\t', low_memory= False)        #Read in Spectronaut "Normal Report"
     print('File Read')
 
     samples = (report['R.FileName']).unique()       #List of unique samples/ LC-MS runs that IDs may come from
+
     return(report, samples)
+
 
 def find_heavies(reg, heavy):
     """
@@ -135,12 +152,13 @@ def find_position(non_heavy_mods,target_sequence, PEP_position):
             chars.append(match.group())
             pos.append(match.start())
 
-    for x in PEP_position.split(';'):               #PEP_positions relating to different protein IDs are separated by ';'
-        annotation = []
-        for y in range(0, len(heavy_locations)):    #Collect heavy-labeled annotations and positions for each protein ID and respective peptide position
-            prot_pos = int(x) + heavy_locations[y] - 1
-            annotation.append(heavy_annotations[y] + str(prot_pos))
-        heavy_ProteinPositions.append(annotation)
+    if type(PEP_position) == list:
+        for x in PEP_position.split(';'):               #PEP_positions relating to different protein IDs are separated by ';'
+            annotation = []
+            for y in range(0, len(heavy_locations)):    #Collect heavy-labeled annotations and positions for each protein ID and respective peptide position
+                prot_pos = int(x) + heavy_locations[y] - 1
+                annotation.append(heavy_annotations[y] + str(prot_pos))
+            heavy_ProteinPositions.append(annotation)
 
     if has_heavies == True:
         return(heavy_ProteinPositions) #returns residues that are actually modified
@@ -161,6 +179,7 @@ def sty_ProteinLocations(PTM_ProteinLocations):
 
     """
     sty_locations = []
+
 
     isoforms = PTM_ProteinLocations.split(';')
     for iso in isoforms:
@@ -201,6 +220,7 @@ def generate_collapsed_report(report):
     # Only keep sequences that contain the target modification ([+80])
     target = report.loc[report['FG.IntMID'].str.contains('\[\+80\]')]
 
+    STY_Locations = []
     target_mods = []
     heavy_ProteinLocations = []
     collapse_keys = []
@@ -224,12 +244,13 @@ def generate_collapsed_report(report):
         protein_ids = row['PG.ProteinAccessions']
         PTM_ProteinLocations = row['EG.ProteinPTMLocations']                                #Existing column also contains PTM locations M-Ox, Cam, etc
         STY_ProteinLocations = str(sty_ProteinLocations(PTM_ProteinLocations))              #Create column that only contains PTM locations of STY's, this way even sequences with other modifications will still collapse if they have the same phosphorylation
+        STY_Locations.append(sty_ProteinLocations(PTM_ProteinLocations))
 
         k = (protein_ids,STY_ProteinLocations,str(position_info))         #Collapse key contains: Protein IDs, PTM protein locations, heavy mod protein locations
         collapse_keys.append(k)
 
 
-
+    target['STYProteinLocations'] = STY_Locations
     target['Only_Target_Mods'] = target_mods                               #Creates new column with sequences only consisting of target PTM annotations
     target['HeavyMod_ProteinPositions'] = heavy_ProteinLocations           #Creates new column with heavy-mod protein locations
     target['Collapse'] = collapse_keys                                     #Creates new column with collapse key values
@@ -287,7 +308,7 @@ def generate_collapsed_report(report):
             collapsed_MaxCScore.at[index ,f] = q
 
     #Select columns to keep in the ouput
-    keep = ['R.Condition','R.FileName', 'R.Replicate', 'PG.Genes','PG.Organisms', 'PG.ProteinAccessions', 'PG.IBAQ', 'PG.Quantity', 'PEP.PeptidePosition', 'PEP.Quantity', 'EG.IntPIMID', 'EG.ProteinPTMLocations','EG.PTMPositions [Phospho (STY)]',
+    keep = ['R.Condition','R.FileName', 'R.Replicate', 'PG.Genes','PG.Organisms', 'PG.ProteinAccessions', 'PG.IBAQ', 'PG.Quantity', 'PEP.PeptidePosition', 'PEP.Quantity', 'EG.IntPIMID', 'EG.ProteinPTMLocations', 'STYProteinLocations','EG.PTMPositions [Phospho (STY)]',
             'EG.PTMAssayProbability','EG.PTMLocalizationProbabilities','EG.Cscore','EG.IntCorrScore','FG.Charge','FG.IntMID','FG.CalibratedMassAccuracy (PPM)', 'Only_Target_Mods', 'HeavyMod_ProteinPositions']
 
     #Append file names as column titles, these columns contain file-specific quant values
@@ -296,7 +317,7 @@ def generate_collapsed_report(report):
 
     #Generate new collapsed report with selected columns only
     collapsed_report = collapsed_MaxCScore[keep]
-    collapsed_report.to_csv(wd + 'VM_CollapsedReport.tsv', sep='\t', index=False)
+    # collapsed_report.to_csv(wd + 'VM_CollapsedReport.tsv', sep='\t', index=False)
     return(collapsed_report)
 
 def summarize_any(full, collapsed_report, sample):
@@ -370,6 +391,98 @@ def summarize_non_missing(setlist, collapsed_report, samples, sample):
     return({'Run': sample, '%_Precursors_with_sty': enrichment, 'num_modified_sequences': num_modified_sequences,'num_phosphopeptides': unique_phosphopeptides, 'num_phosphosites': phosphosites})
 
 
+def find_flanking(collapsed_report, organism):
+    print('Finding Flanks!!!')
+    meta = pd.read_csv('Z:\\Helium_Tan\\PhosphositePlus\\Phosphorylation_site_dataset', sep = '\t')
+    meta = meta[meta['ORGANISM'] == organism]
+
+    dict = {}
+    key = []
+    for index, row in meta.iterrows():
+        prot_id = row['ACC_ID']
+        residue = row['MOD_RSD']
+        flank_seq = row['SITE_+/-7_AA'].upper()
+
+        res = residue.split('-')[0]
+        k = (prot_id, res)
+
+        if k not in dict:
+            dict[k] = None
+            dict[k] = flank_seq
+
+        else:
+            dict[k] = flank_seq
+
+        key.append(k)
+
+    meta['Key'] = key
+
+
+
+    print('Done building dictionary. Now appending flanked sequences to collapsed report...')
+
+
+    collect_missing = {}
+    rep_flanks = []         #Global list
+    for index, row in collapsed_report.iterrows():
+        sequence = row['FG.IntMID'].replace('_','')
+        prot_id = row['PG.ProteinAccessions'].split(';')            #Get all protein IDs a sequence is mapped to
+        locations = list(row['STYProteinLocations'])                    #PTM locations in protein
+
+        #List for each row
+        row_flanks = {}
+        # row_key = []
+        for i in range(0, len(prot_id)):                            #For each protein ID
+            prot_flanks = []
+            sites = locations[i]
+            id = prot_id[i]
+
+            contains = False
+            for s in sites:
+                rep_k = (id,s)
+
+                if rep_k in key:
+                    prot_flanks.append(dict[rep_k])
+                    contains = True
+                else:
+                    prot_flanks.append('')
+
+                if contains == False:
+                    if sequence not in collect_missing:
+                        collect_missing[sequence] = []
+                        collect_missing[sequence].append(rep_k)
+                    else:
+                        collect_missing[sequence].append(rep_k)
+
+            if contains == True:
+                if id not in row_flanks:
+                    row_flanks[id] = None
+                    row_flanks[id] = prot_flanks
+                else:
+                    row_flanks[id] = prot_flanks
+
+
+
+
+
+        if len(row_flanks) > 0:
+            rep_flanks.append(row_flanks)
+        else:
+            rep_flanks.append(None)
+
+
+
+
+
+    collapsed_report['7AA_Flanking'] = rep_flanks
+    first = collapsed_report.pop('7AA_Flanking')
+    collapsed_report.insert(0, '7AA_Flanking', first)
+    collapsed_report.to_csv(wd + 'VM_CollapsedReport.tsv', sep = '\t', index = False)
+    # print(collect_missing)
+    missing = pd.DataFrame.from_dict(collect_missing, orient='index')
+    missing.to_csv(wd+ '7AAFlanks_Missing.tsv',sep = '\t')
+
+
 
 
 def summarize(report, collapsed_report, samples):
@@ -414,17 +527,27 @@ def summarize(report, collapsed_report, samples):
 
 
 if __name__ == "__main__":
-    wd = 'Y:\\LabMembers\\Tan\\CompGroup\\PTMSiteCollapse\\Pro\\'
-    file_name = '20221209_145002_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv'
+    # args = my_parser().parse_args(sys.argv[1:])
+    # main(args)
 
-    info = prepare(wd, file_name)
-    report = info[0]
-    samples = info[1]
+    wd = 'Y:\\LabMembers\\Tan\\CompGroup\\PTMSiteCollapse\\Pro\\'
+    # file = 'ToyData.tsv'
+
+    # wd = 'Z:\\Alexi\\TimsTOF_SCP_Jurkat_Phospho_R2\\Data Output but for real\\'
+    # file = '20230106_DIA_TechDev_Phospho_R2.tsv'
+    file = '20221209_145002_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv'
+
+    ret = prepare(wd, file)
+    report = ret[0]
+    samples = ret[1]
+
 
     collapsed_report = generate_collapsed_report(report)
     summarize(report, collapsed_report, samples)
 
+    # collapsed_report = pd.read_csv(wd + 'Collapsed_WithFlanks.tsv', sep = '\t')
+    # print('File Read')
 
-
+    find_flanking(collapsed_report, 'human')
 
 
