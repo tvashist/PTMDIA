@@ -64,11 +64,7 @@ def find_heavies(reg, heavy):
     if len(diff) == 0:                                      #If there are no heavy mods, set boolean to False
         has_heavies = False
 
-    #If heavy mods are present
-    if len(diff) == 1:              #Only one heavy mod type
-        prep_re = collect[0]
-
-    if len(diff) >1:                #More than one heavy mod type, compile regex to search for all
+    else:                #More than one heavy mod type, compile regex to search for all
         prep_re = '|'.join(collect)
 
     # Returns regular expression if heavy annotations are present, return None if not
