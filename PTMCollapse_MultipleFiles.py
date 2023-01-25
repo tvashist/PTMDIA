@@ -9,6 +9,15 @@ from statistics import mean,stdev,mode
 import os
 import numpy as np
 
+
+library = {'[+80]': ('S','T','Y'),
+           '[+114]': 'K'}
+
+phrases = {'[+80]': 'Phospho',
+           '[+114]': 'GlyGly'}
+
+
+
 def my_parser():
     parser = argparse.ArgumentParser()
 
@@ -105,7 +114,7 @@ def find_position(non_heavy_mods,target_sequence, PEP_position):
 
     """
 
-    heavies = target_sequence.replace('[+80]', '')  #Remove STY mods so only heavy mod annotations are left
+    heavies = target_sequence.replace(target_ptm, '')  #Remove STY mods so only heavy mod annotations are left
 
     has_heavies = False                             #Boolean tracks if heavy mods are present
 
@@ -163,7 +172,7 @@ def find_position(non_heavy_mods,target_sequence, PEP_position):
 # print(find_position('EGPTDHLESACPLNLPLQNNHTAADMYLS[+80]PVRS[+80]PK','EGPTDHLESACPL[+8]NLPL[+10]QNNHT[+6]AADMYLS[+80]PVRS[+80]PK','580;570'))
 # print(find_position('EGPTDHLESACPLNLPLQNNHTAADMYLS[+80]PVRS[+80]PK','EGPTDHLESACPLNLPLQNNHTAADMYLS[+80]PVRS[+80]PK','580;570'))
 
-def sty_ProteinLocations(PTM_ProteinLocations):
+def ptm_ProteinLocations(PTM_ProteinLocations):
     """
     Generates part of collapse key without experimentally-introduced mods. Miscleavages, different charge states, sequences with different
     experimentally-introduced mod sites will still be collapsed together.
@@ -174,21 +183,21 @@ def sty_ProteinLocations(PTM_ProteinLocations):
     Returns: List of target-mod positions only, for each protein ID sequence maps to.
 
     """
-    sty_locations = []
+    target_locations = []
 
-
+    PTM_ProteinLocations = PTM_ProteinLocations.replace(')(', ');(')
     isoforms = PTM_ProteinLocations.split(';')
     for iso in isoforms:
         sites = iso.replace('(','').replace(')','').split(',')
 
-        sty_only = []
+        target_only = []
         for s in sites:                         #Only keep position information from STY amino acids
-            if s.startswith(('S','T','Y')):
-                sty_only.append(s)
+            if s.startswith(library[target_ptm]):
+                target_only.append(s)
 
-        sty_locations.append(sty_only)
+        target_locations.append(target_only)
 
-    return(sty_locations)
+    return(target_locations)
 
 
 def generate_collapsed_report(report):
@@ -212,11 +221,11 @@ def generate_collapsed_report(report):
         'HeavyMod_ProteinPositions': Protein location of heavy-labeled amino acids
 
     """
+    #YOU'RE HERE!!!!!!
 
-    # Only keep sequences that contain the target modification ([+80])
-    target = report.loc[report['FG.IntMID'].str.contains('\[\+80\]')]
+    target = report.loc[report['EG.ModifiedSequence'].str.contains(phrases[target_ptm])]
 
-    STY_Locations = []
+    PTM_Locations = []
     target_mods = []
     heavy_ProteinLocations = []
     collapse_keys = []
@@ -239,14 +248,14 @@ def generate_collapsed_report(report):
 
         protein_ids = row['PG.ProteinAccessions']
         PTM_ProteinLocations = row['EG.ProteinPTMLocations']                                #Existing column also contains PTM locations M-Ox, Cam, etc
-        STY_ProteinLocations = str(sty_ProteinLocations(PTM_ProteinLocations))              #Create column that only contains PTM locations of STY's, this way even sequences with other modifications will still collapse if they have the same phosphorylation
-        STY_Locations.append(sty_ProteinLocations(PTM_ProteinLocations))
+        PTM_ProteinLocations = str(ptm_ProteinLocations(PTM_ProteinLocations))              #Create column that only contains PTM locations of STY's, this way even sequences with other modifications will still collapse if they have the same phosphorylation
+        PTM_Locations.append(ptm_ProteinLocations(PTM_ProteinLocations))
 
-        k = (protein_ids,STY_ProteinLocations,str(position_info))         #Collapse key contains: Protein IDs, PTM protein locations, heavy mod protein locations
+        k = (protein_ids,PTM_ProteinLocations,str(position_info))         #Collapse key contains: Protein IDs, PTM protein locations, heavy mod protein locations
         collapse_keys.append(k)
 
 
-    target['STYProteinLocations'] = STY_Locations
+    target[phrases[target_ptm] + 'ProteinLocations'] = PTM_Locations
     target['Only_Target_Mods'] = target_mods                               #Creates new column with sequences only consisting of target PTM annotations
     target['HeavyMod_ProteinPositions'] = heavy_ProteinLocations           #Creates new column with heavy-mod protein locations
     target['Collapse'] = collapse_keys                                     #Creates new column with collapse key values
@@ -304,16 +313,15 @@ def generate_collapsed_report(report):
             collapsed_MaxCScore.at[index ,f] = q
 
     #Select columns to keep in the ouput
-    keep = ['R.Condition','R.FileName', 'R.Replicate', 'PG.Genes','PG.Organisms', 'PG.ProteinAccessions', 'PG.IBAQ', 'PG.Quantity', 'PEP.PeptidePosition', 'PEP.Quantity', 'EG.IntPIMID', 'EG.ProteinPTMLocations', 'STYProteinLocations','EG.PTMPositions [Phospho (STY)]',
+    keep = ['R.Condition','R.FileName', 'R.Replicate', 'PG.Genes','PG.Organisms', 'PG.ProteinAccessions', 'PG.IBAQ', 'PG.Quantity', 'PEP.PeptidePosition', 'PEP.Quantity', 'EG.IntPIMID', 'EG.ProteinPTMLocations', phrases[target_ptm]+'ProteinLocations',
             'EG.PTMAssayProbability','EG.PTMLocalizationProbabilities','EG.Cscore','EG.IntCorrScore','FG.Charge','FG.IntMID','FG.CalibratedMassAccuracy (PPM)', 'Only_Target_Mods', 'HeavyMod_ProteinPositions']
 
     #Append file names as column titles, these columns contain file-specific quant values
-    for s in samples:
-        keep.append(s)
+    keep.extend(samples)
 
     #Generate new collapsed report with selected columns only
     collapsed_report = collapsed_MaxCScore[keep]
-    # collapsed_report.to_csv(wd + 'VM_CollapsedReport.tsv', sep='\t', index=False)
+    collapsed_report.to_csv(wd + 'VM_CollapsedReport.tsv', sep='\t', index=False)
     return(collapsed_report)
 
 def summarize_any(full, collapsed_report, sample):
@@ -335,24 +343,24 @@ def summarize_any(full, collapsed_report, sample):
     all_sequences = full['FG.IntMID']  # All precursors
     num_modified_sequences = len(all_sequences.unique())                           # All precursors, including experimentally-introduced mods and heavy mods
 
-    phos_sequences = [x for x in all_sequences if '[+80]' in x]  # Only phospho-containing precursors
-    enrichment = (len(set(phos_sequences)) / num_modified_sequences) * 100         #Phospho-containing precursors / all precursors
+    ptm_sequences = [x for x in all_sequences if target_ptm in x]  # Only phospho-containing precursors
+    enrichment = (len(set(ptm_sequences)) / num_modified_sequences) * 100         #Phospho-containing precursors / all precursors
 
     # Number of unique STY modified sequences (Heavy mods allowed, no experimentally-introduced mods)
-    phospho_no_experimental = list(map(remove_experimental_mods, phos_sequences))  # Remove experimentally-introduced modifications
-    unique_phosphopeptides = len(set(phospho_no_experimental))                     #This will represent the number of phosphopeptides
+    ptm_no_experimental = list(map(remove_experimental_mods, ptm_sequences))  # Remove experimentally-introduced modifications
+    unique_ptm_peptides = len(set(ptm_no_experimental))                     #This will represent the number of phosphopeptides
 
     #For individual samples, find number of phosphosites
     if sample != 'Combined':
         select = collapsed_report[sample].values.tolist()
         res = [i for i in select if i is not None]
-        phosphosites = len(res)
+        ptm_sites = len(res)
 
     #Length of data frame is the number of phosphosites identified across all samples searched together
     if sample == 'Combined':
-        phosphosites = len(collapsed_report)
+        ptm_sites = len(collapsed_report)
 
-    return({'Run': sample, '%_Precursors_with_sty': enrichment, 'num_modified_sequences': num_modified_sequences ,'num_phosphopeptides': unique_phosphopeptides, 'num_phosphosites': phosphosites})
+    return({'Run': sample, '%_Precursors_with_' + phrases[target_ptm]: enrichment, 'num_modified_sequences': num_modified_sequences ,'num_'+phrases[target_ptm]+'_peptides': unique_ptm_peptides, 'num_'+phrases[target_ptm]+'_sites': ptm_sites})
 
 def summarize_non_missing(setlist, collapsed_report, samples, sample):
     """
@@ -374,17 +382,20 @@ def summarize_non_missing(setlist, collapsed_report, samples, sample):
     intersection = set.intersection(*setlist)                               #Sequences that are found across all samples
     num_modified_sequences = len(intersection)
 
-    phos_sequences = [x for x in intersection if '[+80]' in x]  # Only phospho-containing precursors
-    enrichment = (len(set(phos_sequences)) / num_modified_sequences) * 100  #Phospho-containing precursors / all precursors
+    ptm_sequences = [x for x in intersection if target_ptm in x]  # Only phospho-containing precursors
+    enrichment = (len(set(ptm_sequences)) / num_modified_sequences) * 100  #Phospho-containing precursors / all precursors
 
-    phospho_no_experimental = list(map(remove_experimental_mods, phos_sequences))  #Remove experimentally-introduced modifications, keep heavy mods
-    unique_phosphopeptides = len(set(phospho_no_experimental))  #This will represent the number of phosphopeptides
+    ptm_no_experimental = list(map(remove_experimental_mods, ptm_sequences))  #Remove experimentally-introduced modifications, keep heavy mods
+    unique_ptm_peptides = len(set(ptm_no_experimental))  #This will represent the number of phosphopeptides
 
     no_missing = collapsed_report.dropna(subset = samples)
     no_missing.to_csv(wd + 'Intersection.tsv', sep = '\t', index = False)
-    phosphosites = len(no_missing)
+    ptm_sites = len(no_missing)
 
-    return({'Run': sample, '%_Precursors_with_sty': enrichment, 'num_modified_sequences': num_modified_sequences,'num_phosphopeptides': unique_phosphopeptides, 'num_phosphosites': phosphosites})
+    return ({'Run': sample, '%_Precursors_with_' + phrases[target_ptm]: enrichment,
+             'num_modified_sequences': num_modified_sequences,
+             'num_' + phrases[target_ptm] + '_peptides': unique_ptm_peptides,
+             'num_' + phrases[target_ptm] + '_sites': ptm_sites})
 
 
 def find_flanking(collapsed_report, organism):
@@ -498,7 +509,8 @@ def summarize(report, collapsed_report, samples):
 
     """
     print('Summarizing data...')
-    data = pd.DataFrame(columns= ['Run','%_Precursors_with_sty', 'num_modified_sequences', 'num_phosphopeptides', 'num_phosphosites'])       #Initialize datarframe with columns
+    data = pd.DataFrame(columns= ['Run', '%_Precursors_with_' + phrases[target_ptm], 'num_modified_sequences','num_' + phrases[target_ptm] + '_peptides','num_' + phrases[target_ptm] + '_sites'])       #Initialize datarframe with columns
+
 
     non_missing = []                #Collect precursors found in each sample individually
 
@@ -523,15 +535,9 @@ def summarize(report, collapsed_report, samples):
 
 
 if __name__ == "__main__":
-    # args = my_parser().parse_args(sys.argv[1:])
-    # main(args)
-
-    wd = 'Y:\\LabMembers\\Tan\\CompGroup\\PTMSiteCollapse\\Pro\\'
-    # file = 'ToyData.tsv'
-
-    # wd = 'Z:\\Alexi\\TimsTOF_SCP_Jurkat_Phospho_R2\\Data Output but for real\\'
-    # file = '20230106_DIA_TechDev_Phospho_R2.tsv'
-    file = '20221209_145002_20221004_PTMDIAProject_TimsTOFPro_DIACurveAnalysis_SmallLib0.75Loc_LocalizationScores_Report.tsv'
+    target_ptm = '[+114]'
+    wd = 'Z:\\Keith\\KGG_OldData\\Generalized\\'
+    file = '20230111_172120_40fmol_KGG_pilot_Report.tsv'
 
     ret = prepare(wd, file)
     report = ret[0]
@@ -541,9 +547,7 @@ if __name__ == "__main__":
     collapsed_report = generate_collapsed_report(report)
     summarize(report, collapsed_report, samples)
 
-    # collapsed_report = pd.read_csv(wd + 'Collapsed_WithFlanks.tsv', sep = '\t')
-    # print('File Read')
-
-    find_flanking(collapsed_report, 'human')
+    if target_ptm == '[+80]':
+        find_flanking(collapsed_report, 'human')
 
 
